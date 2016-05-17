@@ -7,6 +7,34 @@ MU_ACCOUNT = RDF::Vocabulary.new(MU.to_uri.to_s + 'account/')
 MU_SESSION = RDF::Vocabulary.new(MU.to_uri.to_s + 'session/')
 
 ###
+# GET /vote/
+#
+# Retrieves all votes of the current user.  We would like to give
+# a correct JSONAPI response, but we don't know the published
+# json type of the votes which have been made.  An frontend app
+# may have sufficient information to assign the votes to a
+# specific model.
+#
+# Returns 200
+# Body    {"data":[{"id":<uuid-ofvote>}]}
+###
+get '/' do
+  content_type 'application/json'
+
+  session_uri = session_id_header(request)
+  error('Session header is missing') if session_uri.nil?
+
+  vote_query = "
+    SELECT ?uuid WHERE {
+      GRAPH <#{settings.graph}> {
+        <#{session_uri}> <#{MU_SESSION.account}>/^<#{RDF::Vocab::FOAF.account}>/<#{MU_VOTES.plus_one}>/<#{MU_CORE.uuid}> ?uuid.
+      }
+    }"
+
+  { data: query(vote_query).map { |item| { id: item['uuid'] } } }.to_json
+end
+
+###
 # POST /vote/:id
 #
 # Body    {"data":{"type":<name-of-type>, "id":<uuid-oftarget> }}

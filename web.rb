@@ -45,13 +45,15 @@ post '/:id' do
   content_type 'application/vnd.api+json'
 
   request.body.rewind
-  body = JSON.parse(request.body.read)
+  body_string = request.body.read
+  body = JSON.parse(body_string)
   data = body['data']
 
   ###
   # Validate request
   ###
   validate_json_api_content_type(request)
+  error('Data attribute is required in JSON request') unless data
   error('Id parameter is required', 403) unless data['id']
   error('Type parameter is required', 403) unless data['type']
   error('Incorrect id. Id does not match the request URL.', 409) if data['id'] != params['id']

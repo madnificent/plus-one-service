@@ -136,8 +136,8 @@ def update_vote_count( uuid )
     WHERE {
       GRAPH <#{settings.graph}> {
         ?target <#{MU_CORE.uuid}> \"#{uuid}\".
-        { SELECT count(?user) AS ?count WHERE {
-          ?user <#{MU_VOTES.plus_one}> ?target.
+        { SELECT COUNT(DISTINCT ?user) AS ?count WHERE {
+          ?user <#{MU_VOTES.plus_one}>/<#{MU_CORE.uuid}> \"#{uuid}\".
         } }
       }
     }"
